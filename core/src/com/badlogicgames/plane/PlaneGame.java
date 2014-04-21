@@ -40,7 +40,7 @@ public class PlaneGame extends ApplicationAdapter {
 		background = new Texture("background.png");	
 		ground = new Texture("ground.png");
 		ceiling = new TextureRegion(ground);
-		ceiling.flip(false, true);
+		ceiling.flip(true, true);
 		
 		Texture frame1 = new Texture("plane1.png");
 		frame1.setFilter(TextureFilter.Linear, TextureFilter.Linear);
