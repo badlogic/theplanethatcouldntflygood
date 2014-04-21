@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -26,6 +27,7 @@ public class PlaneGame extends ApplicationAdapter {
 	ShapeRenderer shapeRenderer;
 	SpriteBatch batch;
 	OrthographicCamera camera;
+	OrthographicCamera uiCamera;
 	Texture background;
 	TextureRegion ground;
 	float groundOffsetX = 0;
@@ -35,6 +37,7 @@ public class PlaneGame extends ApplicationAdapter {
 	Animation plane;
 	TextureRegion ready;
 	TextureRegion gameOver;
+	BitmapFont font;
 	
 	Vector2 planePosition = new Vector2();
 	Vector2 planeVelocity = new Vector2();
@@ -43,6 +46,7 @@ public class PlaneGame extends ApplicationAdapter {
 	Array<Rock> rocks = new Array<Rock>();
 	
 	GameState gameState = GameState.Start;
+	int score = 0;
 	Rectangle rect1 = new Rectangle();
 	Rectangle rect2 = new Rectangle();
 	
@@ -52,6 +56,11 @@ public class PlaneGame extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
+		uiCamera = new OrthographicCamera();
+		uiCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		uiCamera.update();
+		
+		font = new BitmapFont(Gdx.files.internal("arial.fnt"));
 		
 		background = new Texture("background.png");	
 		ground = new TextureRegion(new Texture("ground.png"));
@@ -77,6 +86,7 @@ public class PlaneGame extends ApplicationAdapter {
 	}
 	
 	private void resetWorld() {
+		score = 0;
 		groundOffsetX = 0;
 		planePosition.set(PLANE_START_X, PLANE_START_Y);
 		planeVelocity.set(0, 0);
@@ -123,11 +133,16 @@ public class PlaneGame extends ApplicationAdapter {
 				r.position.x += 5 * 200;
 				r.position.y = isDown?480-rock.getRegionHeight(): 0;
 				r.image = isDown? rockDown: rock;
+				r.counted = false;
 			}
 			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2 + 20, r.position.y, 20, r.image.getRegionHeight() - 10);
 			if(rect1.overlaps(rect2)) {
 				gameState = GameState.GameOver;
 				planeVelocity.x = 0;
+			}
+			if(r.position.x < planePosition.x && !r.counted) {
+				score++;
+				r.counted = true;
 			}
 		}
 		
@@ -151,14 +166,19 @@ public class PlaneGame extends ApplicationAdapter {
 		batch.draw(ceiling, groundOffsetX, 480 - ceiling.getRegionHeight());
 		batch.draw(ceiling, groundOffsetX + ceiling.getRegionWidth(), 480 - ceiling.getRegionHeight());
 		batch.draw(plane.getKeyFrame(planeStateTime), planePosition.x, planePosition.y);
+		batch.end();
 		
+		batch.setProjectionMatrix(uiCamera.combined);
+		batch.begin();		
 		if(gameState == GameState.Start) {
-			batch.draw(ready, 400 - ready.getRegionWidth() / 2, 240 - ready.getRegionHeight() / 2);
+			batch.draw(ready, Gdx.graphics.getWidth() / 2 - ready.getRegionWidth() / 2, Gdx.graphics.getHeight() / 2 - ready.getRegionHeight() / 2);
 		}
 		if(gameState == GameState.GameOver) {
-			batch.draw(gameOver, camera.position.x - gameOver.getRegionWidth() / 2, 240 - gameOver.getRegionHeight() / 2);
+			batch.draw(gameOver, Gdx.graphics.getWidth() / 2 - gameOver.getRegionWidth() / 2, Gdx.graphics.getHeight() / 2 - gameOver.getRegionHeight() / 2);
 		}
-		
+		if(gameState == GameState.GameOver || gameState == GameState.Running) {
+			font.draw(batch, "" + score, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - 60);
+		}
 		batch.end();
 		
 //		debugDraw();
@@ -188,6 +208,7 @@ public class PlaneGame extends ApplicationAdapter {
 	static class Rock {
 		Vector2 position = new Vector2();
 		TextureRegion image;
+		boolean counted;
 		
 		public Rock(float x, float y, TextureRegion image) {
 			this.position.x = x;
