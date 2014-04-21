@@ -10,7 +10,10 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
@@ -20,6 +23,7 @@ public class PlaneGame extends ApplicationAdapter {
 	private static final float PLANE_VELOCITY_X = 200;
 	private static final float PLANE_START_Y = 240;
 	private static final float PLANE_START_X = 50;
+	ShapeRenderer shapeRenderer;
 	SpriteBatch batch;
 	OrthographicCamera camera;
 	Texture background;
@@ -36,8 +40,13 @@ public class PlaneGame extends ApplicationAdapter {
 	Vector2 gravity = new Vector2();
 	Array<Rock> rocks = new Array<Rock>();
 	
+	GameState gameState = GameState.Running;
+	Rectangle rect1 = new Rectangle();
+	Rectangle rect2 = new Rectangle();
+	
 	@Override
 	public void create () {
+		shapeRenderer = new ShapeRenderer();
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
@@ -72,7 +81,7 @@ public class PlaneGame extends ApplicationAdapter {
 		float deltaTime = Gdx.graphics.getDeltaTime();
 		planeStateTime += deltaTime;
 		
-		if(Gdx.input.justTouched()) {
+		if(Gdx.input.justTouched() && gameState != GameState.GameOver) {
 			planeVelocity.set(PLANE_VELOCITY_X, PLANE_JUMP_IMPULSE);
 		}
 		
@@ -83,7 +92,8 @@ public class PlaneGame extends ApplicationAdapter {
 		if(camera.position.x - groundOffsetX > ground.getRegionWidth() + 400) {
 			groundOffsetX += ground.getRegionWidth();
 		}
-		
+				
+		rect1.set(planePosition.x, planePosition.y, plane.getKeyFrames()[0].getRegionWidth(), plane.getKeyFrames()[0].getRegionHeight());
 		for(Rock r: rocks) {
 			if(camera.position.x - r.position.x > 400 + r.image.getRegionWidth()) {
 				boolean isDown = MathUtils.randomBoolean();
@@ -91,7 +101,18 @@ public class PlaneGame extends ApplicationAdapter {
 				r.position.y = isDown?480-rock.getRegionHeight(): 0;
 				r.image = isDown? rockDown: rock;
 			}
+			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2, r.position.y, 30, r.image.getRegionHeight());
+			if(rect1.overlaps(rect2)) {
+				gameState = GameState.GameOver;
+				planeVelocity.x = 0;
+			}
 		}
+		
+		if(planePosition.y < ground.getRegionHeight() - 20 || 
+			planePosition.y + plane.getKeyFrames()[0].getRegionHeight() > 480 - ground.getRegionHeight() + 20) {
+			gameState = GameState.GameOver;
+			planeVelocity.x = 0;
+		}		
 	}
 	
 	private void drawWorld() {
@@ -108,6 +129,20 @@ public class PlaneGame extends ApplicationAdapter {
 		batch.draw(ceiling, groundOffsetX + ceiling.getRegionWidth(), 480 - ceiling.getRegionHeight());
 		batch.draw(plane.getKeyFrame(planeStateTime), planePosition.x, planePosition.y);
 		batch.end();
+		
+		debugDraw();
+	}
+	
+	private void debugDraw() {
+		shapeRenderer.setProjectionMatrix(camera.combined);
+		shapeRenderer.begin(ShapeType.Line);
+		rect1.set(planePosition.x, planePosition.y, plane.getKeyFrames()[0].getRegionWidth(), plane.getKeyFrames()[0].getRegionHeight());
+		shapeRenderer.rect(rect1.x, rect1.y, rect1.width, rect1.height);
+		for(Rock r: rocks) {
+			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2, r.position.y, 30, r.image.getRegionHeight());
+			shapeRenderer.rect(rect2.x, rect2.y, rect2.width, rect2.height);
+		}		
+		shapeRenderer.end();
 	}
 
 	@Override
@@ -128,5 +163,9 @@ public class PlaneGame extends ApplicationAdapter {
 			this.position.y = y;
 			this.image = image;
 		}
+	}
+	
+	static enum GameState {
+		Start, Running, GameOver
 	}
 }
