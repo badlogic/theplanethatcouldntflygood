@@ -2,6 +2,8 @@ package com.badlogicgames.plane;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,7 +14,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -50,6 +51,9 @@ public class PlaneGame extends ApplicationAdapter {
 	Rectangle rect1 = new Rectangle();
 	Rectangle rect2 = new Rectangle();
 	
+	Music music;
+	Sound explode;
+	
 	@Override
 	public void create () {
 		shapeRenderer = new ShapeRenderer();
@@ -81,6 +85,12 @@ public class PlaneGame extends ApplicationAdapter {
 		
 		plane = new Animation(0.05f, new TextureRegion(frame1), new TextureRegion(frame2), new TextureRegion(frame3), new TextureRegion(frame2));
 		plane.setPlayMode(PlayMode.LOOP);
+		
+		music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
+		music.setLooping(true);
+		music.play();
+		
+		explode = Gdx.audio.newSound(Gdx.files.internal("explode.wav"));
 		
 		resetWorld();
 	}
@@ -137,8 +147,9 @@ public class PlaneGame extends ApplicationAdapter {
 			}
 			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2 + 20, r.position.y, 20, r.image.getRegionHeight() - 10);
 			if(rect1.overlaps(rect2)) {
+				if(gameState != GameState.GameOver) explode.play();
 				gameState = GameState.GameOver;
-				planeVelocity.x = 0;
+				planeVelocity.x = 0;				
 			}
 			if(r.position.x < planePosition.x && !r.counted) {
 				score++;
@@ -148,6 +159,7 @@ public class PlaneGame extends ApplicationAdapter {
 		
 		if(planePosition.y < ground.getRegionHeight() - 20 || 
 			planePosition.y + plane.getKeyFrames()[0].getRegionHeight() > 480 - ground.getRegionHeight() + 20) {
+			if(gameState != GameState.GameOver) explode.play();
 			gameState = GameState.GameOver;
 			planeVelocity.x = 0;
 		}		
@@ -180,20 +192,6 @@ public class PlaneGame extends ApplicationAdapter {
 			font.draw(batch, "" + score, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - 60);
 		}
 		batch.end();
-		
-//		debugDraw();
-	}
-	
-	private void debugDraw() {
-		shapeRenderer.setProjectionMatrix(camera.combined);
-		shapeRenderer.begin(ShapeType.Line);
-		rect1.set(planePosition.x + 20, planePosition.y, plane.getKeyFrames()[0].getRegionWidth() - 20, plane.getKeyFrames()[0].getRegionHeight());
-		shapeRenderer.rect(rect1.x, rect1.y, rect1.width, rect1.height);
-		for(Rock r: rocks) {
-			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2 + 20, r.position.y, 20, r.image.getRegionHeight() - 10);
-			shapeRenderer.rect(rect2.x, rect2.y, rect2.width, rect2.height);
-		}		
-		shapeRenderer.end();
 	}
 
 	@Override
