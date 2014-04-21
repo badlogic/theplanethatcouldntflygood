@@ -33,6 +33,8 @@ public class PlaneGame extends ApplicationAdapter {
 	TextureRegion rock;
 	TextureRegion rockDown;
 	Animation plane;
+	TextureRegion ready;
+	TextureRegion gameOver;
 	
 	Vector2 planePosition = new Vector2();
 	Vector2 planeVelocity = new Vector2();
@@ -40,7 +42,7 @@ public class PlaneGame extends ApplicationAdapter {
 	Vector2 gravity = new Vector2();
 	Array<Rock> rocks = new Array<Rock>();
 	
-	GameState gameState = GameState.Running;
+	GameState gameState = GameState.Start;
 	Rectangle rect1 = new Rectangle();
 	Rectangle rect2 = new Rectangle();
 	
@@ -65,12 +67,23 @@ public class PlaneGame extends ApplicationAdapter {
 		Texture frame2 = new Texture("plane2.png");
 		Texture frame3 = new Texture("plane3.png");
 		
+		ready = new TextureRegion(new Texture("ready.png"));
+		gameOver = new TextureRegion(new Texture("gameover.png"));
+		
 		plane = new Animation(0.05f, new TextureRegion(frame1), new TextureRegion(frame2), new TextureRegion(frame3), new TextureRegion(frame2));
 		plane.setPlayMode(PlayMode.LOOP);
-		planePosition.set(PLANE_START_X, PLANE_START_Y);
-		planeVelocity.set(PLANE_VELOCITY_X, 0);
-		gravity.set(0, GRAVITY);
 		
+		resetWorld();
+	}
+	
+	private void resetWorld() {
+		groundOffsetX = 0;
+		planePosition.set(PLANE_START_X, PLANE_START_Y);
+		planeVelocity.set(0, 0);
+		gravity.set(0, GRAVITY);
+		camera.position.x = 400;
+		
+		rocks.clear();
 		for(int i = 0; i < 5; i++) {
 			boolean isDown = MathUtils.randomBoolean();
 			rocks.add(new Rock(700 + i * 200, isDown?480-rock.getRegionHeight(): 0, isDown? rockDown: rock));
@@ -81,11 +94,21 @@ public class PlaneGame extends ApplicationAdapter {
 		float deltaTime = Gdx.graphics.getDeltaTime();
 		planeStateTime += deltaTime;
 		
-		if(Gdx.input.justTouched() && gameState != GameState.GameOver) {
-			planeVelocity.set(PLANE_VELOCITY_X, PLANE_JUMP_IMPULSE);
+		if(Gdx.input.justTouched()) {
+			if(gameState == GameState.Start) {
+				gameState = GameState.Running;
+			}
+			if(gameState == GameState.Running) {
+				planeVelocity.set(PLANE_VELOCITY_X, PLANE_JUMP_IMPULSE);
+			}
+			if(gameState == GameState.GameOver) {
+				gameState = GameState.Start;
+				resetWorld();
+			}
 		}
+			
+		if(gameState != GameState.Start) planeVelocity.add(gravity);
 		
-		planeVelocity.add(gravity);
 		planePosition.mulAdd(planeVelocity, deltaTime);
 		
 		camera.position.x = planePosition.x + 350;		
@@ -93,7 +116,7 @@ public class PlaneGame extends ApplicationAdapter {
 			groundOffsetX += ground.getRegionWidth();
 		}
 				
-		rect1.set(planePosition.x, planePosition.y, plane.getKeyFrames()[0].getRegionWidth(), plane.getKeyFrames()[0].getRegionHeight());
+		rect1.set(planePosition.x + 20, planePosition.y, plane.getKeyFrames()[0].getRegionWidth() - 20, plane.getKeyFrames()[0].getRegionHeight());
 		for(Rock r: rocks) {
 			if(camera.position.x - r.position.x > 400 + r.image.getRegionWidth()) {
 				boolean isDown = MathUtils.randomBoolean();
@@ -101,7 +124,7 @@ public class PlaneGame extends ApplicationAdapter {
 				r.position.y = isDown?480-rock.getRegionHeight(): 0;
 				r.image = isDown? rockDown: rock;
 			}
-			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2, r.position.y, 30, r.image.getRegionHeight());
+			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2 + 20, r.position.y, 20, r.image.getRegionHeight() - 10);
 			if(rect1.overlaps(rect2)) {
 				gameState = GameState.GameOver;
 				planeVelocity.x = 0;
@@ -128,18 +151,26 @@ public class PlaneGame extends ApplicationAdapter {
 		batch.draw(ceiling, groundOffsetX, 480 - ceiling.getRegionHeight());
 		batch.draw(ceiling, groundOffsetX + ceiling.getRegionWidth(), 480 - ceiling.getRegionHeight());
 		batch.draw(plane.getKeyFrame(planeStateTime), planePosition.x, planePosition.y);
+		
+		if(gameState == GameState.Start) {
+			batch.draw(ready, 400 - ready.getRegionWidth() / 2, 240 - ready.getRegionHeight() / 2);
+		}
+		if(gameState == GameState.GameOver) {
+			batch.draw(gameOver, camera.position.x - gameOver.getRegionWidth() / 2, 240 - gameOver.getRegionHeight() / 2);
+		}
+		
 		batch.end();
 		
-		debugDraw();
+//		debugDraw();
 	}
 	
 	private void debugDraw() {
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		shapeRenderer.begin(ShapeType.Line);
-		rect1.set(planePosition.x, planePosition.y, plane.getKeyFrames()[0].getRegionWidth(), plane.getKeyFrames()[0].getRegionHeight());
+		rect1.set(planePosition.x + 20, planePosition.y, plane.getKeyFrames()[0].getRegionWidth() - 20, plane.getKeyFrames()[0].getRegionHeight());
 		shapeRenderer.rect(rect1.x, rect1.y, rect1.width, rect1.height);
 		for(Rock r: rocks) {
-			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2, r.position.y, 30, r.image.getRegionHeight());
+			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2 + 20, r.position.y, 20, r.image.getRegionHeight() - 10);
 			shapeRenderer.rect(rect2.x, rect2.y, rect2.width, rect2.height);
 		}		
 		shapeRenderer.end();
