@@ -1,0 +1,124 @@
+1) setup
+- copy graphical assets
+- add resize, pause, resume to PlaneGame, remove texture
+- setup 800x480 desktop window, and resizable
+- make all other projects landscape as well
+
+2) loading graphical assets
+- load background and draw
+- show resolution issue,  use 960x480 in desktop
+- setup camera -> always use 800x480
+- add ground, draw it
+- add ceiling, explain textureRegion, draw it
+- add plane animation, explain it, draw it with stateTime (50, 240)
+- explain Gdx.XXX
+
+3) gravity and touch
+- add update() and draw() methods -> clean up
+- add plane position (50, 240) and velocity vector, gravity vector (0, -20), mention euler integration and that the values are just guessed
+- add planeStateTime update to updateWorld
+- add planeVelocity.add(gravity) to updateWorld
+- add planePosition.mulAdd(planeVelocity, deltaTime) to updateWorld
+- draw planePosition
+- add justTouched with planeVelocity.set(0, 350) to updateWorld
+
+4) plane movement
+- modify planeVelocity initialisation in create(), use 40, 0 so plane moves, and modify the setter in updateWorld
+- tell folks that it's time to use constants! change gravity, start position, start velocity and jump velocity!
+
+5) camera & parallax movement
+- let camera follow plane on x axis with offset of 350px
+- fix background to camera position by drawing at camera.position.x - background.getWidth() / 2
+- add groundOffsetX, draw ground/ceiling twice at groundOffsetX and groundOffsetX + ground.getWidth()
+- add check so offset gets reset
+		if(camera.position.x - groundOffsetX > ground.getWidth() + 400) {
+			groundOffsetX += ground.getWidth();
+		}
+- flip ceiling on x as well!
+
+6) Add rocks
+- load rock images
+- create a class rock, position and region
+- add an Array<Rock> and draw it before the ground/ceiling
+- add 5 rocks, starting at 700, every 160px
+		for(int i = 0; i < 5; i++) {
+			boolean isDown = MathUtils.randomBoolean();
+			rocks.add(new Rock(700 + i * 200, isDown?480-rock.getRegionHeight(): 0, isDown? rockDown: rock));
+		}
+- show result, explain how we reset the rocks that go outside the visible range
+
+7) Collision
+- add game state enum Start, Running, GameOver and corresponding field (set to running)
+- add collision with ground and ceiling by checking position.y against constants, set game over state, set x velocity to 0
+		if(planePosition.y < ground.getRegionHeight() - 20 || 
+			planePosition.y + plane.getKeyFrames()[0].getRegionHeight() > 480 - ground.getRegionHeight() + 20) {
+			gameState = GameState.GameOver;
+			planeVelocity.x = 0;
+		}	
+- modify touch test to check if game is over, the game needs to be hard reset now to work!
+- add collision detection between plane and rocks using rectangles, say that allocating rects is bad
+		rect1.set(planePosition.x, planePosition.y, plane.getKeyFrames()[0].getRegionWidth(), plane.getKeyFrames()[0].getRegionHeight());
+		for(Rock r: rocks) {
+			if(camera.position.x - r.position.x > 400 + r.image.getRegionWidth()) {
+				boolean isDown = MathUtils.randomBoolean();
+				r.position.x += 5 * 200;
+				r.position.y = isDown?480-rock.getRegionHeight(): 0;
+				r.image = isDown? rockDown: rock;
+			}
+			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2, r.position.y, 30, r.image.getRegionHeight());position.y, 30, r.image.getRegionHeight());
+			if(rect1.overlaps(rect2)) {
+				gameState = GameState.GameOver;
+				planeVelocity.x = 0;
+			}
+		}
+- doesn't work! Let's use ShapeRenderer to see what's up
+		shapeRenderer.setProjectionMatrix(camera.combined);
+		shapeRenderer.begin(ShapeType.Line);
+		rect1.set(planePosition.x, planePosition.y, plane.getKeyFrames()[0].getRegionWidth(), plane.getKeyFrames()[0].getRegionHeight());
+		shapeRenderer.rect(rect1.x, rect1.y, rect1.width, rect1.height);
+		for(Rock r: rocks) {
+			rect2.set(r.position.x + (r.image.getRegionWidth() - 30) / 2, r.position.y, 30, r.image.getRegionHeight());
+			shapeRenderer.rect(rect2.x, rect2.y, rect2.width, rect2.height);
+		}		
+		shapeRenderer.end();
+
+8) Fix Collision, game states
+- modify bounding rectangle of both plane (shorter at the end) and rock (smaller 20 and offset to the right by 10)
+- load ready and gameover pngs
+- create resetWorld method, reset rocks, camera, plane, groundOffset
+- let gravity only apply if gamestate is not starting
+- rework touch check
+		if(Gdx.input.justTouched()) {
+			if(gameState == GameState.Start) {
+				gameState = GameState.Running;
+			}
+			if(gameState == GameState.Running) {
+				planeVelocity.set(PLANE_VELOCITY_X, PLANE_JUMP_IMPULSE);
+			}
+			if(gameState == GameState.GameOver) {
+				gameState = GameState.Start;
+				resetWorld();
+			}
+		}
+- render overlays
+		if(gameState == GameState.Start) {
+			batch.draw(ready, 400 - ready.getRegionWidth() / 2, 240 - ready.getRegionHeight() / 2);
+		}
+		if(gameState == GameState.GameOver) {
+			batch.draw(ready, 400 - ready.getRegionWidth() / 2, 240 - ready.getRegionHeight() / 2);
+		}
+
+9) Show score
+- Add UI Camera, do rendering of ready, gameover with uicamera
+- Add Bitmapfont
+- load font, add score field, add rendering
+		if(gameState == GameState.GameOver || gameState == GameState.Running) {
+			font.draw(batch, "" + score, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - 60);
+		}
+- count rocks
+
+10) Audio
+- remove debugDraw
+- add music and sound effect files
+
+11) cleanup
