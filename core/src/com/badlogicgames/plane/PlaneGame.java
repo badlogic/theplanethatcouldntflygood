@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -12,6 +13,11 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 public class PlaneGame extends ApplicationAdapter {
+	private static final float PLANE_JUMP_IMPULSE = 350;
+	private static final float GRAVITY = -20;
+	private static final float PLANE_VELOCITY_X = 200;
+	private static final float PLANE_START_Y = 240;
+	private static final float PLANE_START_X = 50;
 	SpriteBatch batch;
 	OrthographicCamera camera;
 	Texture background;
@@ -36,14 +42,15 @@ public class PlaneGame extends ApplicationAdapter {
 		ceiling.flip(false, true);
 		
 		Texture frame1 = new Texture("plane1.png");
+		frame1.setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		Texture frame2 = new Texture("plane2.png");
 		Texture frame3 = new Texture("plane3.png");
 		
 		plane = new Animation(0.05f, new TextureRegion(frame1), new TextureRegion(frame2), new TextureRegion(frame3), new TextureRegion(frame2));
 		plane.setPlayMode(PlayMode.LOOP);
-		planePosition.set(50, 240);
-		planeVelocity.set(0, 0);
-		gravity.set(0, -20);
+		planePosition.set(PLANE_START_X, PLANE_START_Y);
+		planeVelocity.set(PLANE_VELOCITY_X, 0);
+		gravity.set(0, GRAVITY);
 	}
 	
 	private void updateWorld() {
@@ -51,7 +58,7 @@ public class PlaneGame extends ApplicationAdapter {
 		planeStateTime += deltaTime;
 		
 		if(Gdx.input.justTouched()) {
-			planeVelocity.set(0, 350);
+			planeVelocity.set(PLANE_VELOCITY_X, PLANE_JUMP_IMPULSE);
 		}
 		
 		planeVelocity.add(gravity);
