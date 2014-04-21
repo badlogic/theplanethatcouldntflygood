@@ -22,6 +22,7 @@ public class PlaneGame extends ApplicationAdapter {
 	OrthographicCamera camera;
 	Texture background;
 	Texture ground;
+	float groundOffsetX = 0;
 	TextureRegion ceiling;
 	Animation plane;
 	
@@ -63,15 +64,22 @@ public class PlaneGame extends ApplicationAdapter {
 		
 		planeVelocity.add(gravity);
 		planePosition.mulAdd(planeVelocity, deltaTime);
+		
+		camera.position.x = planePosition.x + 350;		
+		if(camera.position.x - groundOffsetX > ground.getWidth() + 400) {
+			groundOffsetX += ground.getWidth();
+		}
 	}
 	
 	private void drawWorld() {
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
-		batch.draw(background, 0, 0);
-		batch.draw(ground, 0, 0);
-		batch.draw(ceiling, 0, 480 - ceiling.getRegionHeight());
+		batch.draw(background, camera.position.x - background.getWidth() / 2, 0);
+		batch.draw(ground, groundOffsetX, 0);
+		batch.draw(ground, groundOffsetX + ground.getWidth(), 0);
+		batch.draw(ceiling, groundOffsetX, 480 - ceiling.getRegionHeight());
+		batch.draw(ceiling, groundOffsetX + ceiling.getRegionWidth(), 480 - ceiling.getRegionHeight());
 		batch.draw(plane.getKeyFrame(planeStateTime), planePosition.x, planePosition.y);
 		batch.end();
 	}
