@@ -1,3 +1,8 @@
+Slides
+- At slide 12, show tests
+- At slide 14, show people around the webpage & Github
+
+
 1) setup
 - copy graphical assets
 - add resize, pause, resume to PlaneGame, remove texture
@@ -116,9 +121,3 @@
 			font.draw(batch, "" + score, Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - 60);
 		}
 - count rocks
-
-10) Audio
-- remove debugDraw
-- add music and sound effect files
-
-11) cleanup
