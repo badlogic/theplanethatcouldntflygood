@@ -1,16 +1,37 @@
+import groovy.json.JsonSlurper
+
 buildscript {
-    repositories {
-        mavenCentral()
-        mavenLocal()
-        maven { url 'https://github.com/steffenschaefer/gwt-gradle-plugin/raw/maven-repo/' }
+
+    ant.get(src: 'http://libgdx.badlogicgames.com/libgdx-site/service/getVersions?release=false', dest: 'versions.json')
+    def versionFile = file('versions.json')
+    def json
+    if (versionFile.exists()) {
+        json = new JsonSlurper().parseText(versionFile.text)
+    } else throw new GradleException("Unable to retrieve latest versions, please check your internet connection")
+
+    ext {
+        gdxVersion = json.libgdxSnapshot
+        roboVMVersion = json.robovmVersion
+        roboVMGradleVersion = json.robovmPluginVersion
+        androidToolsVersion = json.androidBuildtoolsVersion
+        androidSDKVersion = json.androidSDKVersion
+        androidGradleToolsVersion = json.androidGradleToolVersion
+        gwtVersion = json.gwtVersion
+        gwtGradleVersion = json.gwtPluginVersion
     }
+    
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+    
     dependencies {
-        classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:0.3'
-        classpath 'com.android.tools.build:gradle:0.9+'
-        classpath 'com.github.jtakakura:gradle-robovm-plugin:0.0.7'
+        classpath "de.richsource.gradle.plugins:gwt-gradle-plugin:$gwtGradleVersion"
+        classpath "com.android.tools.build:gradle:$androidGradleToolsVersion"
+        classpath "org.robovm:robovm-gradle-plugin:$roboVMGradleVersion"
     }
 }
-
 allprojects {
     apply plugin: "eclipse"
     apply plugin: "idea"
@@ -59,14 +80,12 @@ project(":ios") {
     apply plugin: "java"
     apply plugin: "robovm"
 
-    configurations { natives }
-
     dependencies {
         compile project(":core")
         compile "org.robovm:robovm-rt:${roboVMVersion}"
         compile "org.robovm:robovm-cocoatouch:${roboVMVersion}"
         compile "com.badlogicgames.gdx:gdx-backend-robovm:$gdxVersion"
-        natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
+        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
     }
 }
 
