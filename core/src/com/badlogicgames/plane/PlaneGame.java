@@ -1,3 +1,8 @@
+/**
+ * Don't slap your corps license header here :D
+ * Kthxbye, <3 Mario
+ **/
+
 package com.badlogicgames.plane;
 
 import com.badlogic.gdx.ApplicationAdapter;
