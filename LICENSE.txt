@@ -1,4 +1,3 @@
-/*
 KTHXBYE License!
 
  * Do NOT slap your corporation's license header anywhere, it's the law :D
@@ -17,26 +16,3 @@ KTHXBYE License!
  If you violate this license, Karma will be a bitch (and i'll be petty on Twitter)!
 
 Kthxbye, <3 Mario (Zechner, Copyright 2014-2234)
-*/
-package com.badlogicgames.plane;
-
-import org.robovm.apple.foundation.NSAutoreleasePool;
-import org.robovm.apple.uikit.UIApplication;
-
-import com.badlogic.gdx.backends.iosrobovm.IOSApplication;
-import com.badlogic.gdx.backends.iosrobovm.IOSApplicationConfiguration;
-import com.badlogicgames.plane.PlaneGame;
-
-public class IOSLauncher extends IOSApplication.Delegate {
-    @Override
-    protected IOSApplication createApplication() {
-        IOSApplicationConfiguration config = new IOSApplicationConfiguration();
-        return new IOSApplication(new PlaneGame(), config);
-    }
-
-    public static void main(String[] argv) {
-        NSAutoreleasePool pool = new NSAutoreleasePool();
-        UIApplication.main(argv, null, IOSLauncher.class);
-        pool.close();
-    }
-}
