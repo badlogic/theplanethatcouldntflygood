@@ -1,5 +1,5 @@
 /*
-KTHXBYE License!
+KTHXBYE License Version 2.0!
 
  * Do NOT slap your corporation's license header anywhere, it's the law :D
  * You can totally do this:
@@ -12,6 +12,7 @@ KTHXBYE License!
  * ALWAYS retain this LICENSE file and any related material such as license headers.
  * IF USED FOR COMMERCIAL PURPOSES (including training material, talks, etc.) YOU MUST:
    - Take a photo of you wearing a pink hat, standing on one leg, holding a turtle
+     - Turtle may be substituted by chicken, polar bear, or great white shark
    - Post the photo to Twitter along with the message "Am I pretty @badlogicgames?"
 
  If you violate this license, Karma will be a bitch (and i'll be petty on Twitter)!
