@@ -1,5 +1,6 @@
 /**
- * Don't slap your corps license header here :D
+ * Don't slap your corporation's license header here :D
+ * Feel free to fork it, redistribute it, convert it, remix it.
  * Kthxbye, <3 Mario
  **/
 
