@@ -57,7 +57,7 @@ public class PlaneGame extends ApplicationAdapter {
 	TextureRegion ceiling;
 	TextureRegion rock;
 	TextureRegion rockDown;
-	Animation plane;
+	Animation<TextureRegion> plane;
 	TextureRegion ready;
 	TextureRegion gameOver;
 	BitmapFont font;
@@ -105,7 +105,7 @@ public class PlaneGame extends ApplicationAdapter {
 		ready = new TextureRegion(new Texture("ready.png"));
 		gameOver = new TextureRegion(new Texture("gameover.png"));
 		
-		plane = new Animation(0.05f, new TextureRegion(frame1), new TextureRegion(frame2), new TextureRegion(frame3), new TextureRegion(frame2));
+		plane = new Animation<TextureRegion>(0.05f, new TextureRegion(frame1), new TextureRegion(frame2), new TextureRegion(frame3), new TextureRegion(frame2));
 		plane.setPlayMode(PlayMode.LOOP);
 		
 		music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
